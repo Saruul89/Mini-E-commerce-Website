@@ -1,22 +1,37 @@
-const Card = () => {
+const Card = ({ handleSubmit, product }) => {
   return (
-    <div className="w-full">
-      <div className="container m-auto mt-[70px]">
-        <div className="card bg-base-100 w-96 shadow-xl">
-          <figure>
-            <img
-              src="https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp"
-              alt="Shoes"
-            />
-          </figure>
-          <div className="card-body">
-            <h2 className="card-title">Shoes!</h2>
-            <p className="pb-2">price</p>
-            <div className="card-actions justify-end flex gap-6">
-              <button className="btn btn-primary">View details</button>
-              <button className="btn btn-primary">Add cart</button>
+    <div>
+      <div key={product.id} className="card bg-white shadow-lg">
+        <img
+          src={product?.pic_url}
+          alt={product.name}
+          className="h-[300px] w-full rounded-lg object-cover"
+        />
+        <div className="card-body p-4">
+          <h2 className="text-xl font-semibold">{product.name}</h2>
+          <p className="text-lg text-gray-700 pb-2">{product.price}$</p>
+          <button className="btn btn-primary" onClick={handleSubmit}>
+            Add to cart
+          </button>
+          <button
+            className="btn"
+            onClick={() =>
+              document.getElementById(`modal_${product.id}`).showModal()
+            }
+          >
+            Details
+          </button>
+          <dialog id={`modal_${product.id}`} className="modal">
+            <div className="modal-box">
+              <h3 className="font-bold text-lg">{product.name}</h3>
+              <p className="py-4">{product.introduce}</p>
+              <div className="modal-action">
+                <form method="dialog">
+                  <button className="btn">Close</button>
+                </form>
+              </div>
             </div>
-          </div>
+          </dialog>
         </div>
       </div>
     </div>
