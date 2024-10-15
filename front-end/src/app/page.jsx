@@ -58,7 +58,9 @@ export default function Home() {
     for (const itemId in cartItems) {
       const product = products.find((p) => p.id === Number(itemId));
       if (product) {
-        totalAmount += cartItems[itemId] * product.price;
+        const quantity = cartItems[itemId];
+        console.log(quantity);
+        totalAmount += parseFloat(product.price);
       }
     }
     return totalAmount;
@@ -71,8 +73,9 @@ export default function Home() {
           cartItems={cartItems}
           removeFromCart={removeFromCart}
           getTotalCartAmount={getTotalCartAmount}
+          product={products}
         />
-        <div className="w-[1440px] grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {products.map((product) => (
             <div>
               <Card handleSubmit={() => addToCart(product)} product={product} />

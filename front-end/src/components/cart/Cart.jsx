@@ -1,8 +1,8 @@
 "use client";
 
 const Cart = ({ cartItems, removeFromCart, getTotalCartAmount, product }) => {
-  const cartproducts = [];
-  const totalAmount = getTotalCartAmount(cartproducts);
+  const totalAmount = getTotalCartAmount(product);
+  console.log(totalAmount);
 
   return (
     <div>
@@ -16,7 +16,7 @@ const Cart = ({ cartItems, removeFromCart, getTotalCartAmount, product }) => {
         <div className="modal-box">
           <div>
             {Object.values(cartItems).length === 0 ? (
-              <div>Your cart is empty.</div>
+              <div>Your cart is empty</div>
             ) : (
               Object.values(cartItems).map((item) => (
                 <div
@@ -31,7 +31,7 @@ const Cart = ({ cartItems, removeFromCart, getTotalCartAmount, product }) => {
                   </div>
                   <button
                     type="button"
-                    className="btn btn-danger"
+                    className="btn"
                     onClick={() => removeFromCart(item.id)}
                   >
                     Remove
@@ -41,9 +41,9 @@ const Cart = ({ cartItems, removeFromCart, getTotalCartAmount, product }) => {
             )}
           </div>
           {totalAmount > 0 && (
-            <div className="checkout">
+            <div className="checkout w-full">
               <p>Subtotal: ${totalAmount}</p>
-              <button>Checkout</button>
+              <button className="btn">Checkout</button>
             </div>
           )}
 

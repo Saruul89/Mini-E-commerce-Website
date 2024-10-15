@@ -45,6 +45,13 @@ app.post("/products", async (req, res) => {
   res.status(500).json({ error: "Error garlaa" });
 });
 
+app.put("/products", async (req, res) => {
+  
+})
+
+
+
+
 app.listen(PORT, () => {
   console.log(`Listening on http://localhost:${PORT}`);
 });
