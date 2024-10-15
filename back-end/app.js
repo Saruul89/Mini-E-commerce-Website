@@ -45,12 +45,52 @@ app.post("/products", async (req, res) => {
   res.status(500).json({ error: "Error garlaa" });
 });
 
-app.put("/products", async (req, res) => {
-  
-})
+app.put("/products/:id", async (req, res) => {
+  const { id } = req.params;
+  const { name, introduce, price, pic_url } = req.body;
 
+  if (!name || !introduce || !price || !pic_url) {
+    return res
+      .status(400)
+      .json({ error: "shaardlagatai talbariig oruulna uu" });
+  }
+  if (isNaN(price) || price <= 0) {
+    return res.status(400).json({ error: "zaawal too bh ystoi!" });
+  }
 
+  try {
+    const response =
+      await data`UPDATE products SET name = ${name}, introduce = ${introduce}, price =${price}, pic_url = ${pic_url} WHERE id = ${id}
+  RETURNING *;`;
 
+    if (response.length === 0) {
+      return res.status(404).json({ error: "product oldsongui" });
+    }
+
+    res.json(response);
+  } catch (error) {
+    console.log("product update hiihed aldaa garlaa", error);
+    res.status(500).json({ error: "server error" });
+  }
+});
+
+app.delete("/products/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const response =
+      await data`DELETE FROM products WHERE id = ${id} RETURNING *;`;
+
+    if (response.length === 0) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    console.error("Error deleting product", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Listening on http://localhost:${PORT}`);

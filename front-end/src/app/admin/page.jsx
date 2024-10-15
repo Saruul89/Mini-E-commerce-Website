@@ -1,13 +1,37 @@
 "use client";
+import CreateProductAdmin from "@/components/create/CreateProductAdmin";
+import EditAdmin from "@/components/edit/Edit";
 import { BACKEND_ENDPOINT } from "@/constant/constant";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export default function Home({setProducts}) {
+export default function Home() {
   const [product, setProduct] = useState({});
+  const [products, setProducts] = useState([]);
+  const [error, setError] = useState("");
+  const [editId, setEditId] = useState(null);
+  const [deleteId, setDeleteId] = useState(null);
 
-  const handleSubmit = async (event) => {
+  const fetchProducts = async () => {
     try {
-      event.preventDefault();
+      const response = await fetch(`http://localhost:8000/products`);
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+      const responseData = await response.json();
+      setProducts(responseData);
+    } catch (error) {
+      console.error(error);
+      setError("Error occurred while fetching products.");
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const handleCreateSubmit = async (event) => {
+    event.preventDefault();
+
+    try {
       const options = {
         method: "POST",
         headers: {
@@ -16,87 +40,157 @@ export default function Home({setProducts}) {
         body: JSON.stringify(product),
       };
       const response = await fetch(`${BACKEND_ENDPOINT}/products`, options);
+
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+
       const data = await response.json();
       setProducts((prevProducts) => [...prevProducts, data]);
-    } catch {
-      console.log("error");
-    }
 
-    setProduct({
-      name: "",
-      introduce: "",
-      price: "",
-      pic_url: "",
-    });
-    document.getElementById("my_modal_create").close();
+      setProduct({
+        name: "",
+        introduce: "",
+        price: "",
+        pic_url: "",
+      });
+
+      document.getElementById("my_modal_create").close();
+    } catch (error) {
+      console.error("Error occurred during submission:", error);
+    }
+  };
+
+  const handleEditSubmit = async (event) => {
+    event.preventDefault();
+
+    try {
+      const options = {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(product),
+      };
+      const response = await fetch(
+        `${BACKEND_ENDPOINT}/products/${editId}`,
+        options
+      );
+
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+
+      const data = await response.json();
+      setProducts((prevProducts) =>
+        prevProducts.map((prod) => (prod.id === editId ? data : prod))
+      );
+
+      document.getElementById("my_modal_edit").close();
+      setEditId(null);
+      setProduct({});
+    } catch (error) {
+      console.error("Error occurred during edit submission:", error);
+    }
   };
 
   const handleInputChange = (event) => {
     const name = event.target.name;
     const value = event.target.value;
 
-    setProduct((prevProduct) => {
-      return {
-        ...prevProduct,
-        [name]: value,
-      };
-    });
+    setProduct((prevProduct) => ({
+      ...prevProduct,
+      [name]: value,
+    }));
   };
+
+  const openEditModal = (product) => {
+    setProduct(product);
+    setEditId(product.id);
+    document.getElementById("my_modal_edit").showModal();
+  };
+
+  const handleDeleteSubmit = async (event) => {
+    try {
+      const options = {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      const response = await fetch(
+        `${BACKEND_ENDPOINT}/products/${deleteId}`,
+        options
+      );
+
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
+
+      // Remove the deleted product from the state
+      setProducts((prevProducts) =>
+        prevProducts.filter((prod) => prod.id !== deleteId)
+      );
+      setDeleteId(null);
+    } catch (error) {
+      console.error("Error occurred during delete submission:", error);
+    }
+  };
+
   return (
     <div className="w-full">
-      <div className="container flex justify-center mt-[70px]">
-        <button
-          className="btn w-[300px] h-[30px] bg-green-500"
-          onClick={() => document.getElementById("my_modal_create").showModal()}
-        >
-          Create product
-        </button>
-        <dialog id="my_modal_create" className="modal">
-          <div className="modal-box">
-            <div className="flex flex-col gap-3 mt-4">
-              <input
-                name="name"
-                onChange={handleInputChange}
-                type="text"
-                placeholder="Name"
-                className="w-full input input-bordered"
-                value={product?.name}
-              />
-              <input
-                name="introduce"
-                onChange={handleInputChange}
-                type="text"
-                placeholder="Introduce"
-                className="w-full input input-bordered"
-                value={product?.introduce}
-              />
-              <input
-                name="price"
-                onChange={handleInputChange}
-                type="text"
-                placeholder="Price"
-                className="w-full input input-bordered"
-                value={product?.price}
-              />
-              <input
-                name="pic_url"
-                onChange={handleInputChange}
-                type="text"
-                placeholder="picture url"
-                className="w-full input input-bordered"
-                value={product?.pic_url}
-              />
-            </div>
-            <div className="modal-action">
-              <form method="dialog">
-                <button className="btn" onClick={handleSubmit}>
-                  Summit
-                </button>
-                <button className="btn ml-2">Close</button>
-              </form>
-            </div>
-          </div>
-        </dialog>
+      <div className="container flex justify-center mt-[70px] m-auto flex-col">
+        <CreateProductAdmin
+          handleCreateSubmit={handleCreateSubmit}
+          handleInputChange={handleInputChange}
+          product={product}
+        />
+        <div className="overflow-x-auto">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>id</th>
+                <th>name</th>
+                <th>introduce</th>
+                <th>price</th>
+                <th>pic_url</th>
+                <th>actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {products.map((product) => (
+                <tr key={product.id}>
+                  <th>{product.id}</th>
+                  <td>{product.name}</td>
+                  <td>{product.introduce}</td>
+                  <td>{product.price}</td>
+                  <td>{product.pic_url}</td>
+                  <td>
+                    <button
+                      className="btn"
+                      onClick={() => openEditModal(product)}
+                    >
+                      Edit
+                    </button>
+                  </td>
+                  <td>
+                    <button
+                      className="btn"
+                      onClick={async () => {
+                        setDeleteId(product.id); // Set the ID of the product to delete
+                        await handleDeleteSubmit(); // Directly call the delete function
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <EditAdmin
+          handleInputChange={handleInputChange}
+          handleEditSubmit={handleEditSubmit}
+          product={product}
+        />
       </div>
     </div>
   );
